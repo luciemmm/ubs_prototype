@@ -490,7 +490,7 @@ else:
                             with st.container():
                                 col1, col2 = st.columns([4, 0.5])
                                 with col1:
-                                    col1_1, col1_2 = st.columns([0.09, 0.9])  # Adjust these ratios based on desired layout
+                                    col1_1, col1_2 = st.columns([0.09, 0.9])  
                                     with col1_1:
                                         st.image(comment[2], width=40)
                     
