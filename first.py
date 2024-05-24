@@ -115,14 +115,14 @@ else:
             def load_css():
                     css = """
                             .custom-container {
-                                border: 2px solid #696969; /* Green border */
+                                border: 2px solid #696969;
                                 padding: 20px;
                                 border-radius: 10px;
                                 margin-bottom: 20px;
-                                background-color: #ADD8E6; /* Light green background */
-                                font-size: 18px; /* Larger text */
-                                color: #333; /* Darker text color for better readability */
-                                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+                                background-color: #ADD8E6; 
+                                font-size: 18px; 
+                                color: #333; 
+                                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
                             }
                             .author-style {
                                 color: navy;
@@ -136,7 +136,6 @@ else:
                             """
                     st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
 
-                        # Call this function at the start of your app to load the styles
             load_css()
             # Button to fetch the profile
             user_data = get_user_data(st.session_state['username'])
@@ -144,7 +143,7 @@ else:
                     print(user_data)
                     username, role, profile_image_url, fun_fact, gender, hobbies = user_data
                     if profile_image_url:
-                        col1, col2 = st.columns([0.13, 0.9])  # Adjust the ratio as needed for your layout
+                        col1, col2 = st.columns([0.13, 0.9]) 
 
                         # Display image in the second column (right column)
                         with col2:
