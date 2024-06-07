@@ -331,6 +331,117 @@ else:
     elif choice == 'Accessment':
             st.header("Diversity & Inclusion Quiz")
 
+            # Function to retrieve surveys
+            def get_surveys(conn):
+                c = conn.cursor()
+                query = "SELECT * FROM surveys"
+                c.execute(query)
+                rows = c.fetchall()
+                df = pd.DataFrame(rows, columns=[desc[0] for desc in c.description])
+                return df
+
+            # Function to retrieve questions for a given survey_id
+            def get_questions(conn, survey_id):
+                c = conn.cursor()
+                c.execute("SELECT * FROM questions WHERE survey_id = ?", (survey_id,))
+                rows = c.fetchall()
+                df = pd.DataFrame(rows, columns=[desc[0] for desc in c.description])
+                return df
+
+                    # Function to insert a response into the database
+            def insert_response(conn, survey_id, question_id, response):
+                query = f"INSERT INTO responses (survey_id, question_id, response) VALUES (?, ?, ?)"
+                cur = conn.cursor()
+                cur.execute(query, (survey_id, question_id, response))
+                conn.commit()
+
+            def insert_survey_id( title, reminder):
+                conn = sqlite3.connect('/Users/moemmyat/Downloads/ubs_prototype/survey.db')
+                c = conn.cursor()
+                c.execute("INSERT INTO surveys (title,reminder) VALUES (?,?)", (title,reminder))
+                conn.commit()
+                survey_id = c.lastrowid
+                print(survey_id)
+                
+                conn.close()
+                return survey_id
+                # Function to insert survey data into the database
+            def insert_survey_q(survey_id, question, option1, option2, option3, option4):
+
+                conn = sqlite3.connect('/Users/moemmyat/Downloads/ubs_prototype/survey.db')
+                c = conn.cursor()
+                c.execute("INSERT INTO questions (survey_id, question, option1, option2, option3, option4) VALUES (?, ?, ?, ?, ?, ?)",
+                            (survey_id, question, option1, option2, option3, option4))
+                conn.commit()
+                conn.close()
+
+            if st.session_state["role"]=="Admin":
+                # Connect to SQLite database
+                
+                app_mode = st.sidebar.radio(
+                "Choose the mode:",
+                ("Survey Management", "User Engagement Tracker")
+    )
+                if app_mode=="Survey Management":
+                    st.title("Survey Management")
+
+                    choice = st.selectbox("Choose an option", ["Create a survey", "Check the surveys"])
+
+                    if choice == 'Create a survey':
+                        title= st.text_input("What is the survey topic?")
+                        st.header("Upload a CSV file for the new survey")
+                        uploaded_file = st.file_uploader("Choose a file")
+                        submit_button = st.button('Submit Survey')
+                        reminder=st.radio("Send notification to users:",("YES","NO"))
+
+                        if submit_button and uploaded_file is not None:
+                            if uploaded_file is not None:
+                                df = pd.read_csv(uploaded_file)
+                                insert_survey_id( title, reminder)
+                                print("IDDDD")
+                                survey_id=1
+                                print(survey_id)
+                                for index, row in df.iterrows():
+                                    insert_survey_q(survey_id,row['question'], row['option1'], row['option2'], row['option3'], row['option4'])
+                                st.success("Survey uploaded successfully!")
+
+                                st.subheader("Take a look at the survey:")
+                                for index, row in df.iterrows():
+                                    options = [row['option1'], row['option2'], row['option3'], row['option4']]
+                                    response = st.radio(row['question'], options)
+                    elif app_mode=="Check the survey":   
+                        pass                            
+            elif st.session_state["role"]=="User":  
+                #pass
+                mode = st.radio("Take a survey","View your surveys")
+                if mode=="Take a survey":                        
+                    pass 
+            else:
+                choice = st.selectbox("Choose a category:", ["Take a survey", "Take a self-accessment"])
+                if choice=="Take a survey":
+
+                    # Streamlit app
+                    def main():
+                        # Database connection
+                            conn = sqlite3.connect('/Users/moemmyat/Downloads/ubs_prototype/survey.db')
+                            surveys = get_surveys(conn)
+                            st.write("Your admin has published some surveys. P")
+                            survey_id = st.selectbox('Choose a survey:', surveys['survey_id'])
+                            
+                            if survey_id:
+                                questions = get_questions(conn, survey_id)
+                                responses = []
+                                for idx, question in questions.iterrows():
+                                    options = [question['option1'], question['option2'], question['option3'], question['option4']]
+                                    response = st.radio(question['question'], options)
+                                    responses.append(response)
+                                
+                                if st.button('Submit'):
+                                    for idx, question in questions.iterrows():
+                                        insert_response(conn, survey_id, question['id'], responses[idx])
+                                    st.success("Thank you for your responses!")
+                    main()
+
 
     elif choice == "Forum":
         def add_post(title, user, content,path):
