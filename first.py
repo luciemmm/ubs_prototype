@@ -329,7 +329,7 @@ else:
             add_update_event(calendar["eventChange"]["oldEvent"]["id"], calendar["eventChange"]["event"]["title"], calendar["eventChange"]["event"]["start"],calendar["eventChange"]["event"]["end"], calendar["eventChange"]["event"]["extendedProps"]["avenue"], conn)
         
     elif choice == 'Accessment':
-            st.header("Diversity & Inclusion Quiz")
+            st.header("Diversity & Inclusion Accessments")
 
             # Function to retrieve surveys
             def get_surveys(conn):
@@ -398,9 +398,7 @@ else:
                             if uploaded_file is not None:
                                 df = pd.read_csv(uploaded_file)
                                 insert_survey_id( title, reminder)
-                                print("IDDDD")
                                 survey_id=1
-                                print(survey_id)
                                 for index, row in df.iterrows():
                                     insert_survey_q(survey_id,row['question'], row['option1'], row['option2'], row['option3'], row['option4'])
                                 st.success("Survey uploaded successfully!")
@@ -409,13 +407,144 @@ else:
                                 for index, row in df.iterrows():
                                     options = [row['option1'], row['option2'], row['option3'], row['option4']]
                                     response = st.radio(row['question'], options)
-                    elif app_mode=="Check the survey":   
-                        pass                            
-            elif st.session_state["role"]=="User":  
-                #pass
-                mode = st.radio("Take a survey","View your surveys")
-                if mode=="Take a survey":                        
-                    pass 
+                    elif choice=="Check the surveys":   
+
+                        # Function to get surveys
+                        def get_surveys():
+                            conn = sqlite3.connect('/Users/moemmyat/Downloads/ubs_prototype/survey.db')
+                            cur = conn.cursor()
+                            cur.execute("SELECT survey_id, title FROM surveys")
+                            surveys = cur.fetchall()
+                            conn.close()
+                            return surveys
+
+                        # Function to get questions for a survey
+                        def get_questions(survey_id):
+                            conn = sqlite3.connect('/Users/moemmyat/Downloads/ubs_prototype/survey.db')
+                            cur = conn.cursor()
+                            cur.execute("SELECT question, option1, option2, option3, option4 FROM questions WHERE survey_id=?", (survey_id,))
+                            questions = cur.fetchall()
+                            conn.close()
+                            return questions
+                        
+                        def load_css():
+                            css = """
+                            .custom-container {
+                                border: 2px solid #696969;
+                                padding: 20px;
+                                border-radius: 10px;
+                                margin-bottom: 20px;
+                                background-color: #ADD8E6; 
+                                font-size: 18px; 
+                                color: #333; 
+                                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+                            }
+                            .author-style {
+                                color: navy;
+                                font-size: 24px; /* Larger font size for author */
+                            }
+                            .time-style {
+                                color: #555; /* Darker gray for timestamp */
+                                font-size: 16px;
+                                text-align: right;
+                            }
+                            """
+                            st.markdown(f'<style>{css}</style>', unsafe_allow_html=True)
+
+                        load_css()
+
+                        # Streamlit UI
+                        def main():
+                            
+                            st.markdown(f"<div class='custom-container'>All created surveys are displayed here. For tracking user responses, please go to User Engagement Tracker. <span style='color: #1E3566;'></span></div>", unsafe_allow_html=True)                    
+
+
+                            surveys = get_surveys()
+                            survey_id = st.selectbox('Choose a survey:', [s[0] for s in surveys], format_func=lambda x: f"{x} - {dict(surveys)[x]}")
+
+                            if survey_id:
+                                st.header('Questions')
+                                questions = get_questions(survey_id)
+                                for q in questions:
+                                    st.subheader(q[0])
+                                    for i in range(1, 5):
+                                        if q[i]:
+                                            st.radio(f"Answer[{i}]:", options=[q[i]], key=f"{survey_id}_{q[0]}_{i}")
+
+                        main()                          
+                elif app_mode=="User Engagement Tracker":
+                    def get_questions(survey_id):
+                        conn = sqlite3.connect('/Users/moemmyat/Downloads/ubs_prototype/survey.db')
+                        cur = conn.cursor()
+                        cur.execute("SELECT id, question FROM questions WHERE survey_id=?", (survey_id,))
+                        questions = cur.fetchall()
+                        conn.close()
+                        return questions
+   
+                    conn = sqlite3.connect('/Users/moemmyat/Downloads/ubs_prototype/survey.db')
+                    c = conn.cursor()
+
+                    def get_questions(survey_id):
+                        c.execute("SELECT id, question FROM questions WHERE survey_id = ?", (survey_id,))
+                        return c.fetchall()
+
+                    def get_response_counts(question_id):
+                        c.execute("""
+                            SELECT response, COUNT(*) as count 
+                            FROM responses 
+                            WHERE question_id = ? 
+                            GROUP BY response
+                            """, (question_id,))
+                        return c.fetchall()
+
+                    def main():
+                        st.subheader("User Engagement Tracker")
+
+                        survey_id = st.number_input("Enter Survey ID", value=1, step=1)
+
+                        questions = get_questions(survey_id)
+                        if questions:
+                            st.subheader('Select Questions:')
+                            selected_questions = []
+                            print(questions)
+                            for q_id, question in questions:
+                                if st.checkbox(question, key=q_id):
+                                    selected_questions.append(q_id)
+
+                            if selected_questions:
+                                st.text(f'You selected questions with IDs: {selected_questions}')
+
+                                for q_id in selected_questions:
+                                    st.write(f"Question:{questions[q_id-1]}")
+                                    response_counts = get_response_counts(q_id)
+                                    if response_counts:
+                                        chart_data = {}
+                                        for response, count in response_counts:
+                                            import altair as alt
+                                            chart_data[response] = count
+                                            
+                                            # Create an Altair chart object
+                                            data = pd.DataFrame(list(chart_data.items()), columns=['Response', 'Count'])
+                                            print(data)
+                                            chart = alt.Chart(data).mark_bar().encode(
+                                                x='Response',
+                                                y='Count',
+                                                color='Response'  # Colors bars by category
+                                            ).properties(
+                                                width='container',  # Use the full width of the container
+                                                height=300          # Set the height of the chart
+                                            )
+
+                                            # Display the chart in Streamlit
+                                            st.altair_chart(chart, use_container_width=True)
+                                    else:
+                                        st.write("No responses yet for this question.")
+                        else:
+                            st.error("No survey available")
+
+                    if __name__ == "__main__":
+                        main()
+
             else:
                 choice = st.selectbox("Choose a category:", ["Take a survey", "Take a self-accessment"])
                 if choice=="Take a survey":
@@ -425,7 +554,11 @@ else:
                         # Database connection
                             conn = sqlite3.connect('/Users/moemmyat/Downloads/ubs_prototype/survey.db')
                             surveys = get_surveys(conn)
-                            st.write("Your admin has published some surveys. P")
+                            if len(surveys['survey_id']) == 0:
+                                st.write("No survey available")
+                                
+                            else:
+                                st.write("Your admin has published some surveys.")
                             survey_id = st.selectbox('Choose a survey:', surveys['survey_id'])
                             
                             if survey_id:
@@ -438,6 +571,7 @@ else:
                                 
                                 if st.button('Submit'):
                                     for idx, question in questions.iterrows():
+                                        print(responses[idx])
                                         insert_response(conn, survey_id, question['id'], responses[idx])
                                     st.success("Thank you for your responses!")
                     main()
