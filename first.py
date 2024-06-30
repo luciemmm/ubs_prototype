@@ -1323,7 +1323,7 @@ else:
                                     <div style="border-radius: 10px; padding: 20px; background-color: #ffcccb; box-shadow: 0 4px 8px rgba(0,0,0,0.2); color: black;">
                                         <h2 style="color: darkred;">Join Our Understanding Workplace Inclusion!</h2>
                                         <p>Join us at "Understanding Workplace Inclusion," an enriching event designed to explore the vast spectrum of cultures and perspectives that make up our workplace. This celebration is a wonderful opportunity for everyone to learn from each other, share diverse experiences, and collaborate towards fostering a more inclusive environment. Don't miss out on the chance to expand your horizons and contribute to our collective growth in understanding and inclusion.</p>                                        
-                                        <p>Date: <strong>July 16, 2024</strong></p>
+                                        <p>Date: <strong>July 30, 2024</strong></p>
                                         <p>Location: <strong>Hall 1, UBS Building</strong></p>
                                         <a href="link_to_event_details" target="_blank" style="color: white; background-color: darkred; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">Register in Calendar</a>
                                         <h3 style="color: darkred;">Fun Activities Include:</h3>
