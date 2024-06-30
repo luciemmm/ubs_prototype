@@ -34,7 +34,16 @@ def create_db():
                                         end text NOT NULL,
                                         avenue text
                 )"""
-                )
+    )
+    c.execute('''CREATE TABLE IF NOT EXISTS event_suggestions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_name TEXT NOT NULL,
+    event_date DATE NOT NULL,
+    event_description TEXT,
+    has_celebrated_before TEXT,
+    available_to_help TEXT
+)'''
+    )
     conn.commit()
     conn.close()
 

@@ -39,6 +39,12 @@ def create_db():
             hobbies TEXT
         )
     ''')
+    c.execute("""CREATE TABLE IF NOT EXISTS registrations (
+                    event_id integer NOT NULL,
+                    user_name text NOT NULL,
+                    user_email text NOT NULL,
+                    FOREIGN KEY (event_id) REFERENCES events (id)
+                )""")
     c.execute('''
         CREATE TABLE IF NOT EXISTS posts (
             id INTEGER PRIMARY KEY,
